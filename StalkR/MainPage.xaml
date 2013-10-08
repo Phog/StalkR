@@ -20,12 +20,9 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Canvas x:Name="previewCanvas" Width="480" 
-                   HorizontalAlignment="Left" Grid.RowSpan="2" >
-
-            <!--Camera viewfinder -->
+        <Canvas x:Name="previewCanvas" Width="480" Height="480" Margin="0,134,0,154" Grid.RowSpan="2" >
             <Canvas.Background>
-                <VideoBrush x:Name="previewBrush">
+                <VideoBrush x:Name="previewBrush" Stretch="None">
                     <VideoBrush.RelativeTransform>
                         <CompositeTransform x:Name="previewTransform" CenterX=".5" CenterY=".5" />
                     </VideoBrush.RelativeTransform>
@@ -33,12 +30,9 @@
             </Canvas.Background>
         </Canvas>
 
-        <Canvas x:Name="displayCanvas" Width="480" 
-                   HorizontalAlignment="Left" Grid.RowSpan="2" Visibility="Collapsed" >
-
-            <!--Camera viewfinder -->
+        <Canvas x:Name="displayCanvas" Width="480" Height="480" Margin="0,134,0,154" Grid.RowSpan="2" Visibility="Collapsed" >
             <Canvas.Background>
-                <ImageBrush x:Name="displayBrush">
+                <ImageBrush x:Name="displayBrush" Stretch="None">
                     <ImageBrush.RelativeTransform>
                         <CompositeTransform x:Name="displayTransform" CenterX=".5" CenterY=".5" />
                     </ImageBrush.RelativeTransform>
@@ -46,11 +40,6 @@
             </Canvas.Background>
         </Canvas>
 
-        <Rectangle x:Name="faceRectangle" Width="100" Height="100" Visibility="Collapsed" StrokeThickness="3" HorizontalAlignment="Left" VerticalAlignment="Top" >
-            <Rectangle.Stroke>
-                <SolidColorBrush Color="Lime" Opacity="0.66"/>
-            </Rectangle.Stroke>
-        </Rectangle>
         <TextBlock Text="StalkR" Margin="0" Style="{StaticResource PhoneTextTitle1Style}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>
         <Button x:Name="IdentifyButton" Content="Identify" Click="IdentifyButton_Click" FontSize="36" FontWeight="ExtraBold" RenderTransformOrigin="0.5,0.5" Margin="0" Grid.Row="1" VerticalAlignment="Bottom" />
         <TextBlock Height="88" HorizontalAlignment="Left" Margin="8,96,0,0" x:Name="infoBox" VerticalAlignment="Top" Width="472" FontSize="24" FontWeight="ExtraBold" />

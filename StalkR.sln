@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Phone
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StalkR", "StalkR\StalkR.csproj", "{A54D9251-C3D8-45CD-843D-57A4692686F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceDetectionWinPhone", "FaceDetectionWP\FaceDetectionWinPhone.csproj", "{A1381BBF-124E-4B05-B34C-D6889299DF48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,18 @@ Global
 		{A54D9251-C3D8-45CD-843D-57A4692686F3}.Release|x86.ActiveCfg = Release|x86
 		{A54D9251-C3D8-45CD-843D-57A4692686F3}.Release|x86.Build.0 = Release|x86
 		{A54D9251-C3D8-45CD-843D-57A4692686F3}.Release|x86.Deploy.0 = Release|x86
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|ARM.ActiveCfg = Debug|ARM
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|ARM.Build.0 = Debug|ARM
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|x86.ActiveCfg = Debug|x86
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Debug|x86.Build.0 = Debug|x86
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|ARM.ActiveCfg = Release|ARM
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|ARM.Build.0 = Release|ARM
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|x86.ActiveCfg = Release|x86
+		{A1381BBF-124E-4B05-B34C-D6889299DF48}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
