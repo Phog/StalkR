@@ -34,7 +34,7 @@ namespace StalkR
 
             camera       = null;
             mediaLibrary = new MediaLibrary();
-            detector     = new Detector(System.Xml.Linq.XDocument.Load("haarcascade_frontalface_alt.xml"));
+            detector     = Detector.Create("haarcascade_frontalface_alt.xml");
 
             previewTransform.Rotation = 90;
         }
@@ -89,7 +89,7 @@ namespace StalkR
             {
                 // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
                 WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
-                List<Rectangle> faces = detector.getFaces(detectorBitmap, 3.0f, 1.1f, 0.08f, 2, false, true);
+                List<Rectangle> faces = detector.getFaces(detectorBitmap, 2.5f, 1.08f, 0.05f, 2, true);
 
                 if (faces.Count > 0)
                 {

@@ -140,12 +140,12 @@ namespace FaceDetectionWinPhone
         /// <param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
         /// <param name="multipleFaces"> Whether or not to detect multiple faces</param>
-        public List<Rectangle> getFaces(String file, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning, bool multipleFaces)
+        public List<Rectangle> getFaces(String file, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
         {
             try
             {
                 WriteableBitmap image = new WriteableBitmap(new BitmapImage(new Uri(file, UriKind.Absolute)));
-                var result = getFaces(image, baseScale, scale_inc, increment, min_neighbors, doCannyPruning, multipleFaces);
+                var result = getFaces(image, baseScale, scale_inc, increment, min_neighbors, doCannyPruning);
                 return result;
             }
             catch (Exception e)
@@ -167,9 +167,9 @@ namespace FaceDetectionWinPhone
         /// <param name="increment">How much to shif the window at each step, in terms of the % of the window size</param>
         /// <param name=param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
-        public List<Rectangle> getFaces(WriteableBitmap image, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning, bool multipleFaces)
+        public List<Rectangle> getFaces(WriteableBitmap image, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
         {
-            return getFaces(image.Pixels, image.PixelWidth, image.PixelHeight, baseScale, scale_inc, increment, min_neighbors, doCannyPruning, multipleFaces);
+            return getFaces(image.Pixels, image.PixelWidth, image.PixelHeight, baseScale, scale_inc, increment, min_neighbors, doCannyPruning);
         }
 
         private int[][] InitArray(int width, int height)
@@ -194,7 +194,7 @@ namespace FaceDetectionWinPhone
         /// <param name="increment">How much to shif the window at each step, in terms of the % of the window size</param>
         /// <param name=param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
-        public List<Rectangle> getFaces(int[] imageData, int width, int height, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning, bool multipleFaces)
+        public List<Rectangle> getFaces(int[] imageData, int width, int height, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
         {
             List<Rectangle> ret = new List<Rectangle>();
             float maxScale = (float)(Math.Min((width + 0.0f) / m_size.X, (height + 0.0f) / m_size.Y));
@@ -226,10 +226,9 @@ namespace FaceDetectionWinPhone
                 }
             }
 
-            // TODO: uncomment if it works
             // Do canny pruning
             if (doCannyPruning)
-                getIntegralCanny(grayImage);
+                getIntegralCanny(img);
 
             // Do detection at every scale size
             for (float scale = baseScale; scale < maxScale; scale *= scale_inc)
@@ -243,31 +242,25 @@ namespace FaceDetectionWinPhone
                         if (doCannyPruning)
                         {
                             int edges_density = m_canny[i + size][j + size] + m_canny[i][j] - m_canny[i][j + size] - m_canny[i + size][j];
-                            int d = edges_density / size / size;
+                            int d = edges_density / (size * size);
                             if (d < 20 || d > 100)
                                 continue;
                         }
-                        bool pass = true;
-                        int k = 0;
 
                         // Check if the rectangle passes at the location and scale we care about 
+                        bool pass = true;
                         foreach (Stage s in m_stages)
                         {
                             if (!s.pass(grayImage, squares, i, j, scale))
                             {
+                                //Debug.WriteLine("\t {0},{1} Failed", i, j);
                                 pass = false;
-                                //Debug.WriteLine("\t {0},{1} Failed at Stage {2}", i, j, k);
                                 break;
                             }
-                            k++;
                         }
+
                         if (pass)
-                        {
                             ret.Add(new Rectangle(i, j, size, size));
-                            //Debug.WriteLine("found face! {0}, {1}, {2}, {3}", i, j, size, size);
-                            if(!multipleFaces)
-                                return ret;
-                        }
                     }
                 }
             }
@@ -337,81 +330,6 @@ namespace FaceDetectionWinPhone
             m_canny = canny;
         }
 
-        /*public void getIntegralCanny(int[][] grayImage)
-        {
-            m_nrows = grayImage grayImage.GetLength(0);
-            m_ncols = grayImage.GetLength(1);
-            // possible bug location
-            m_canny = new int[m_nrows, m_ncols];
-
-            for (int i = 0; i < m_nrows; i++)
-            {
-                for (int j = 0; j < m_ncols; j++)
-                {
-                    m_canny[i, j] = 0;
-                }
-            }
-            for (int i = 2; i < m_nrows - 2; i++)
-            {
-                for (int j = 2; j < m_ncols - 2; j++)
-                {
-                    int sum = 0;
-                    sum += 2 * grayImage[i - 2, j - 2];
-                    sum += 4 * grayImage[i - 2, j - 1];
-                    sum += 5 * grayImage[i - 2, j + 0];
-                    sum += 4 * grayImage[i - 2, j + 1];
-                    sum += 2 * grayImage[i - 2, j + 2];
-                    sum += 4 * grayImage[i - 1, j - 2];
-                    sum += 9 * grayImage[i - 1, j - 1];
-                    sum += 12 * grayImage[i - 1, j + 0];
-                    sum += 9 * grayImage[i - 1, j + 1];
-                    sum += 4 * grayImage[i - 1, j + 2];
-                    sum += 5 * grayImage[i + 0, j - 2];
-                    sum += 12 * grayImage[i + 0, j - 1];
-                    sum += 15 * grayImage[i + 0, j + 0];
-                    sum += 12 * grayImage[i + 0, j + 1];
-                    sum += 5 * grayImage[i + 0, j + 2];
-                    sum += 4 * grayImage[i + 1, j - 2];
-                    sum += 9 * grayImage[i + 1, j - 1];
-                    sum += 12 * grayImage[i + 1, j + 0];
-                    sum += 9 * grayImage[i + 1, j + 1];
-                    sum += 4 * grayImage[i + 1, j + 2];
-                    sum += 2 * grayImage[i + 2, j - 2];
-                    sum += 4 * grayImage[i + 2, j - 1];
-                    sum += 5 * grayImage[i + 2, j + 0];
-                    sum += 4 * grayImage[i + 2, j + 1];
-                    sum += 2 * grayImage[i + 2, j + 2];
-
-                    m_canny[i, j] = sum / 159;
-                    //System.out.println(canny[i][j]);
-                }
-            }
-            if (m_grad == null)
-            {
-                m_grad = new int[m_nrows, m_ncols];
-            }
-            for (int i = 1; i < m_nrows - 1; i++)
-                for (int j = 1; j < m_ncols - 1; j++)
-                {
-                    int grad_x = -m_canny[i - 1, j - 1] + m_canny[i + 1, j - 1] - 2 * m_canny[i - 1, j] + 2 * m_canny[i + 1, j] - m_canny[i - 1, j + 1] + m_canny[i + 1, j + 1];
-                    int grad_y = m_canny[i - 1, j - 1] + 2 * m_canny[i, j - 1] + m_canny[i + 1, j - 1] - m_canny[i - 1, j + 1] - 2 * m_canny[i, j + 1] - m_canny[i + 1, j + 1];
-                    m_grad[i, j] = Math.Abs(grad_x) + Math.Abs(grad_y);
-                    //System.out.println(grad[i][j]);
-                }
-            //JFrame f = new JFrame();
-            //f.setContentPane(new DessinChiffre(grad));
-            //f.setVisible(true);
-            for (int i = 0; i < m_nrows; i++)
-            {
-                int col = 0;
-                for (int j = 0; j < m_ncols; j++)
-                {
-                    int value = m_grad[i, j];
-                    m_canny[i, j] = (i > 0 ? m_canny[i - 1, j] : 0) + col + value;
-                    col += value;
-                }
-            }
-        } */
         /// <summary>
         /// Merges multiple rectangles representing the same face into one face. Does so by finding all rectangles with overlapping regions and 
         /// taking the average of all corners of these rectangles
