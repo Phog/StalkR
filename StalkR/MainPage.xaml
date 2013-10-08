@@ -20,39 +20,40 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- LOCALIZATION NOTE:
-            To localize the displayed strings copy their values to appropriately named
-            keys in the app's neutral language resource file (AppResources.resx) then
-            replace the hard-coded text value between the attributes' quotation marks
-            with the binding clause whose path points to that string name.
-
-            For example:
-
-                Text="{Binding Path=LocalizedResources.ApplicationTitle, Source={StaticResource LocalizedStrings}}"
-
-            This binding points to the template's string resource named "ApplicationTitle".
-
-            Adding supported languages in the Project Properties tab will create a
-            new resx file per language that can carry the translated values of your
-            UI strings. The binding in these examples will cause the value of the
-            attributes to be drawn from the .resx file that matches the
-            CurrentUICulture of the app at run time.
-         -->
-
-        <TextBlock Text="StalkR" Margin="0" Style="{StaticResource PhoneTextTitle1Style}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-
-
-        <Canvas x:Name="viewfinderCanvas" Width="480" 
+        <Canvas x:Name="previewCanvas" Width="480" 
                    HorizontalAlignment="Left" Grid.RowSpan="2" >
 
             <!--Camera viewfinder -->
             <Canvas.Background>
-                <VideoBrush x:Name="viewfinderBrush" />
+                <VideoBrush x:Name="previewBrush">
+                    <VideoBrush.RelativeTransform>
+                        <CompositeTransform x:Name="previewTransform" CenterX=".5" CenterY=".5" />
+                    </VideoBrush.RelativeTransform>
+                </VideoBrush>
             </Canvas.Background>
         </Canvas>
 
+        <Canvas x:Name="displayCanvas" Width="480" 
+                   HorizontalAlignment="Left" Grid.RowSpan="2" Visibility="Collapsed" >
+
+            <!--Camera viewfinder -->
+            <Canvas.Background>
+                <ImageBrush x:Name="displayBrush">
+                    <ImageBrush.RelativeTransform>
+                        <CompositeTransform x:Name="displayTransform" CenterX=".5" CenterY=".5" />
+                    </ImageBrush.RelativeTransform>
+                </ImageBrush>
+            </Canvas.Background>
+        </Canvas>
+
+        <Rectangle x:Name="faceRectangle" Width="100" Height="100" Visibility="Collapsed" StrokeThickness="3" HorizontalAlignment="Left" VerticalAlignment="Top" >
+            <Rectangle.Stroke>
+                <SolidColorBrush Color="Lime" Opacity="0.66"/>
+            </Rectangle.Stroke>
+        </Rectangle>
+        <TextBlock Text="StalkR" Margin="0" Style="{StaticResource PhoneTextTitle1Style}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>
         <Button x:Name="IdentifyButton" Content="Identify" Click="IdentifyButton_Click" FontSize="36" FontWeight="ExtraBold" RenderTransformOrigin="0.5,0.5" Margin="0" Grid.Row="1" VerticalAlignment="Bottom" />
-        <TextBlock Height="88" HorizontalAlignment="Left" Margin="8,96,0,0" Name="infoBox" VerticalAlignment="Top" Width="472" FontSize="24" FontWeight="ExtraBold" />
+        <TextBlock Height="88" HorizontalAlignment="Left" Margin="8,96,0,0" x:Name="infoBox" VerticalAlignment="Top" Width="472" FontSize="24" FontWeight="ExtraBold" />
 
     </Grid>
 
