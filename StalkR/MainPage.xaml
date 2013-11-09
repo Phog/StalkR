@@ -15,35 +15,97 @@
 
     <!--LayoutRoot is the root grid where all page content is placed-->
     <Grid x:Name="LayoutRoot" Background="Transparent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <phone:Panorama x:Name="panoramaRoot" Title="StalkR" Margin="0,-25,0,0">
+            <phone:PanoramaItem Header="Log in">
+                <Grid>
+                    <TextBox x:Name="ipAddress"
+                             Height="100" 
+                             Margin="0,-21,0,397" 
+                             Text="IP Address"
+                             FontSize="48"/>
+                    <TextBox x:Name="username"
+                             Height="100"
+                             Margin="0,79,0,297"
+                             Text="username"
+                             FontSize="48" />
+                    <PasswordBox x:Name="password"
+                                 Height="100"
+                                 Margin="0,179,0,197"
+                                 Password="password" 
+                                 FontSize="48" />
+                </Grid>
+            </phone:PanoramaItem>
+            <phone:PanoramaItem>
+                <Grid Margin="0,-25,0,0">
+                    <Canvas x:Name="previewCanvas" Margin="0,0,0,0" >
+                        <Canvas.Background>
+                            <VideoBrush x:Name="previewBrush">
+                                <VideoBrush.RelativeTransform>
+                                    <CompositeTransform x:Name="previewTransform" CenterX=".5" CenterY=".5" />
+                                </VideoBrush.RelativeTransform>
+                            </VideoBrush>
+                        </Canvas.Background>
+                    </Canvas>
 
-        <Canvas x:Name="previewCanvas" Width="480" Height="480" Margin="0,134,0,154" Grid.RowSpan="2" >
-            <Canvas.Background>
-                <VideoBrush x:Name="previewBrush" Stretch="None">
-                    <VideoBrush.RelativeTransform>
-                        <CompositeTransform x:Name="previewTransform" CenterX=".5" CenterY=".5" />
-                    </VideoBrush.RelativeTransform>
-                </VideoBrush>
-            </Canvas.Background>
-        </Canvas>
+                    <Button x:Name="IdentifyButton" Content="Identify" Click="IdentifyButton_Click" FontSize="36" FontWeight="ExtraBold" RenderTransformOrigin="0.5,0.5" Margin="0" Grid.Row="1" VerticalAlignment="Bottom" />
+                </Grid>
+            </phone:PanoramaItem>
+            <phone:PanoramaItem Header="Choose face">
+                <Grid>
+                    <ProgressBar x:Name="faceBar"
+                                     Height="28" Width="420"
+                                     IsIndeterminate="True"
+                                     Background="#190000FF"
+                                     Foreground="#FF3756E2"
+                                     Margin="0,0,0,448"
+                                     Visibility="Collapsed">
+                    </ProgressBar>
 
-        <Canvas x:Name="displayCanvas" Width="480" Height="480" Margin="0,134,0,154" Grid.RowSpan="2" Visibility="Collapsed" >
-            <Canvas.Background>
-                <ImageBrush x:Name="displayBrush" Stretch="None">
-                    <ImageBrush.RelativeTransform>
-                        <CompositeTransform x:Name="displayTransform" CenterX=".5" CenterY=".5" />
-                    </ImageBrush.RelativeTransform>
-                </ImageBrush>
-            </Canvas.Background>
-        </Canvas>
-
-        <TextBlock Text="StalkR" Margin="0" Style="{StaticResource PhoneTextTitle1Style}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>
-        <Button x:Name="IdentifyButton" Content="Identify" Click="IdentifyButton_Click" FontSize="36" FontWeight="ExtraBold" RenderTransformOrigin="0.5,0.5" Margin="0" Grid.Row="1" VerticalAlignment="Bottom" />
-        <TextBlock Height="88" HorizontalAlignment="Left" Margin="8,96,0,0" x:Name="infoBox" VerticalAlignment="Top" Width="472" FontSize="24" FontWeight="ExtraBold" />
-
+                    <ListBox x:Name="faceList0" Width="130" Margin="0,0,290,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10" Width="130" Height="130">
+                                    <Image Source="{Binding}" Tap="Image_Click" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <phone:LongListSelector Height="100" Width="100"/>
+                    </ListBox>
+                    <ListBox x:Name="faceList1" Width="130" Margin="145,0,145,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10" Width="130" Height="130">
+                                    <Image Source="{Binding}" Tap="Image_Click" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <ListBox x:Name="faceList2" Width="130" Margin="290,0,0,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10" Width="130" Height="130">
+                                    <Image Source="{Binding}" Tap="Image_Click" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </phone:PanoramaItem>
+            <phone:PanoramaItem Header="Result">
+                <Grid>
+                    <ProgressBar x:Name="resultBar"
+                                     Height="28" Width="420"
+                                     IsIndeterminate="True"
+                                     Background="#190000FF"
+                                     Foreground="#FF3756E2"
+                                     Margin="0,0,0,448"
+                                     Visibility="Collapsed">
+                    </ProgressBar>
+                    <Image x:Name="resultImage" Width="256" Height="256" Margin="82,0,82,220" Visibility="Collapsed"/>
+                    <TextBlock x:Name="resultText" Margin="0,282,0,0" TextAlignment="Center" FontSize="48"></TextBlock>
+                </Grid>
+            </phone:PanoramaItem>
+        </phone:Panorama>
     </Grid>
 
 </phone:PhoneApplicationPage>

@@ -14,13 +14,15 @@ using Microsoft.Devices;
 using Microsoft.Xna.Framework.Media;
 using FaceDetectionWinPhone;
 using StalkR.Resources;
+using System.IO;
 
 namespace StalkR
 {
     public partial class MainPage : PhoneApplicationPage
     {
         private const double EPSILON = 0.00001;
-        enum Mode { Preview, Capture, Display };
+        private ListBox[] faceLists;
+        enum Mode { Preview, Capture };
 
         Mode mode;
         PhotoCamera camera;
@@ -32,6 +34,7 @@ namespace StalkR
             InitializeComponent();
             previewMode();
 
+            faceLists    = new ListBox[] { faceList0, faceList1, faceList2 };
             camera       = null;
             mediaLibrary = new MediaLibrary();
             detector     = Detector.Create("haarcascade_frontalface_alt.xml");
@@ -59,9 +62,6 @@ namespace StalkR
         private void previewMode()
         {
             mode = Mode.Preview;
-            displayCanvas.Visibility = Visibility.Collapsed;
-
-            infoBox.Text = "";
             IdentifyButton.Content = "Identify";
         }
 
@@ -71,66 +71,84 @@ namespace StalkR
                 return;
 
             mode = Mode.Capture;
-            infoBox.Text = "Taking picture...";
             camera.CaptureImage();
         }
 
-        private void displayMode(BitmapImage bitmap)
+        private void detectFaces(BitmapImage bitmap)
         {
-            mode = Mode.Display;
-            infoBox.Text = "Detecting faces... ";
-            IdentifyButton.Content = "Cancel";
-
-            displayBrush.ImageSource  = bitmap;
-            displayTransform.Rotation = 90;
-            displayCanvas.Visibility  = Visibility.Visible;
+            faceBar.Visibility = Visibility.Visible;
+            foreach(ListBox faceList in faceLists)
+                faceList.Items.Clear();
 
             this.Dispatcher.BeginInvoke(delegate()
             {
                 // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
                 WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
                 List<Rectangle> faces = detector.getFaces(detectorBitmap, 2.5f, 1.08f, 0.05f, 2, true);
+                faceBar.Visibility = Visibility.Collapsed;
 
                 if (faces.Count > 0)
                 {
-                    using (detectorBitmap.GetBitmapContext())
+                    for (int i = 0; i < faces.Count(); i++)
                     {
-                        foreach (Rectangle face in faces)
-                        {
-                            // The facedetector works with the transposed image, correct for that.
-                            int width = Convert.ToInt32(face.Width);
-                            int height = Convert.ToInt32(face.Height);
-                            int x = Convert.ToInt32(face.X);
-                            int y = Convert.ToInt32(face.Y);
-
-                            detectorBitmap.DrawRectangle(x, y, x + height, y + width, System.Windows.Media.Colors.Green);
-                        }
+                        Rect face = new Rect(faces[i].X, faces[i].Y, faces[i].Width, faces[i].Height);
+                        WriteableBitmap croppedFace = detectorBitmap.Crop(face);
+                        faceLists[i % 3].Items.Add(detectorBitmap.Crop(face));
                     }
-                    infoBox.Text = "Face(s) detected";
                 }
-                else
-                {
-                    infoBox.Text = "No faces in picture";
-                }
-
-                displayTransform.Rotation = 0;
-                displayBrush.ImageSource  = detectorBitmap;
             });
         }
+
+        private void showResults(Response response)
+        {
+            this.Dispatcher.BeginInvoke(delegate()
+            {
+                resultBar.Visibility   = Visibility.Collapsed;
+                resultImage.Visibility = Visibility.Visible;
+                if (!String.IsNullOrEmpty(response.error))
+                {
+                    resultText.Text = response.error;
+                    return;
+                }
+
+                Friend friend = response.friend;
+                resultText.Text = String.Format("{0} {1}", friend.first_name, friend.last_name);
+            });
+        }
+
 
         private void IdentifyButton_Click(object sender, RoutedEventArgs e)
         {
             if (mode == Mode.Preview)
             {
                 captureMode();
+                panoramaRoot.DefaultItem = (PanoramaItem)panoramaRoot.Items[2];
                 return;
             }
+        }
 
-            if (mode == Mode.Display)
-            {
-                previewMode();
-                return;
-            }
+        private void Image_Click(object sender, RoutedEventArgs e)
+        {
+            resultImage.Visibility   = Visibility.Collapsed;
+            resultText.Text          = String.Empty;
+            resultBar.Visibility     = Visibility.Visible;
+            panoramaRoot.DefaultItem = (PanoramaItem)panoramaRoot.Items[3];
+
+            Image image            = (Image) sender;
+            WriteableBitmap bitmap = (WriteableBitmap) image.Source;
+            resultImage.Source     = bitmap;
+
+            Dictionary<String, object> parameters = new Dictionary<string, object>();
+            parameters["username"] = username.Text;
+            parameters["password"] = password.Password;
+
+            MemoryStream imageStream = new MemoryStream();
+            bitmap.SaveJpeg(imageStream, 256, 256, 0, 100);
+            parameters["image"] = imageStream.ToArray();
+
+            String url = "http://" + ipAddress.Text + "/recognize";
+            PostRequest request = new PostRequest(url, parameters, showResults);
+            request.submit();
         }
 
         void Camera_Initialized(object sender, Microsoft.Devices.CameraOperationCompletedEventArgs e)
@@ -149,7 +167,8 @@ namespace StalkR
                 {
                     BitmapImage bitmap = new BitmapImage();
                     bitmap.SetSource(e.ImageStream);
-                    displayMode(bitmap);
+                    detectFaces(bitmap);
+                    previewMode();
                 }
                 finally
                 {
