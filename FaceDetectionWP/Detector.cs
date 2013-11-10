@@ -112,7 +112,6 @@ namespace FaceDetectionWinPhone
             }
         }
 
-
         /// <summary>
         /// Returns a list of rectangles representing detected objects from Viola-jones.
         /// 
@@ -123,15 +122,14 @@ namespace FaceDetectionWinPhone
         /// <param name="baseScale"> The initial ratio between the size of your image and the size of the sliding window (default: 2)</param>
         /// <param name="scale_inc">How much to increment your window for every iteration (default:1.25)</param>
         /// <param name="increment">How much to shif the window at each step, in terms of the % of the window size</param>
-        /// <param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
         /// <param name="multipleFaces"> Whether or not to detect multiple faces</param>
-        public List<NativeFaceDetector.Rectangle> getFaces(String file, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
+        public List<NativeFaceDetector.Rectangle> getFaces(String file, float baseScale, float scale_inc, float increment, int min_neighbors)
         {
             try
             {
                 WriteableBitmap image = new WriteableBitmap(new BitmapImage(new Uri(file, UriKind.Absolute)));
-                var result = getFaces(image, baseScale, scale_inc, increment, min_neighbors, doCannyPruning);
+                var result = getFaces(image, baseScale, scale_inc, increment, min_neighbors);
                 return result;
             }
             catch (Exception e)
@@ -151,11 +149,10 @@ namespace FaceDetectionWinPhone
         /// <param name="baseXcale"> The initial ratio between the size of your image and the size of the sliding window (default: 2)</param>
         /// <param name="scale_inc">How much to increment your window for every iteration (default:1.25)</param>
         /// <param name="increment">How much to shif the window at each step, in terms of the % of the window size</param>
-        /// <param name=param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
-        public List<NativeFaceDetector.Rectangle> getFaces(WriteableBitmap image, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
+        public List<NativeFaceDetector.Rectangle> getFaces(WriteableBitmap image, float baseScale, float scale_inc, float increment, int min_neighbors)
         {
-            return getFaces(image.Pixels, image.PixelWidth, image.PixelHeight, baseScale, scale_inc, increment, min_neighbors, doCannyPruning);
+            return getFaces(image.Pixels, image.PixelWidth, image.PixelHeight, baseScale, scale_inc, increment, min_neighbors);
         }
 
         /// <summary>
@@ -168,12 +165,11 @@ namespace FaceDetectionWinPhone
         /// <param name="baseXcale"> The initial ratio between the size of your image and the size of the sliding window (default: 2)</param>
         /// <param name="scale_inc">How much to increment your window for every iteration (default:1.25)</param>
         /// <param name="increment">How much to shif the window at each step, in terms of the % of the window size</param>
-        /// <param name=param name="doCannyPruning"> Whether or not to do canny pruning, i.e. rejecting objects based on # of edges (doesn't actually have an effect)</param>
         /// <param name="min_neighbors"> Minimum number of overlapping face rectangles to be considered a valid face (default: 1)</param>
-        public List<NativeFaceDetector.Rectangle> getFaces(int[] imageData, int width, int height, float baseScale, float scale_inc, float increment, int min_neighbors, bool doCannyPruning)
+        public List<NativeFaceDetector.Rectangle> getFaces(int[] imageData, int width, int height, float baseScale, float scale_inc, float increment, int min_neighbors)
         {
             List<NativeFaceDetector.Rectangle> ret = new List<NativeFaceDetector.Rectangle>();
-            m_detector.getFaces(ret, imageData, width, height, baseScale, scale_inc, increment, min_neighbors, doCannyPruning);
+            m_detector.getFaces(ret, imageData, width, height, baseScale, scale_inc, increment, min_neighbors);
             return ret;
         }
     }

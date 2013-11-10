@@ -6,6 +6,7 @@
 #include "Structures.h"
 
 #include <vector>
+#include <ppltasks.h>
 
 namespace NativeFaceDetector
 {
@@ -14,14 +15,15 @@ namespace NativeFaceDetector
     {
 		std::vector<Stage> m_stages;
 		Size m_size;
-		Matrix m_canny, m_image, m_grayImage, m_squaredImage;
+		Matrix m_grayImage, m_squaredImage;
 
 		Tree m_currentTree;
 		Feature *m_currentFeature;
 
-		void makeCannyIntegral(const Matrix &grayImage);
 		void merge(Windows::Foundation::Collections::IVector<Rectangle^> ^outRects,
 			       const std::vector<Rectangle^> &inRects, int minNeighbors);
+
+		concurrency::task<std::vector<Rectangle^> > rectsForScaleParallel(int i, int width, int height, int size, int xStep, int yStep);
 
     public:
         Detector(int width, int height);
@@ -36,7 +38,6 @@ namespace NativeFaceDetector
 
 		void getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^rects, 
 			          const Platform::Array<int, 1> ^imageData, int width, int height,
-					  float baseScale, float scaleInc, float increment, int minNeighbors,
-					  bool doCannyPruning);
+					  float baseScale, float scaleInc, float increment, int minNeighbors);
     };
 }

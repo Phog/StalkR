@@ -80,23 +80,27 @@ namespace StalkR
             foreach(ListBox faceList in faceLists)
                 faceList.Items.Clear();
 
-            this.Dispatcher.BeginInvoke(delegate()
+            // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
+            WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
+            var thread = new System.Threading.Thread(delegate()
             {
-                // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
-                WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
-                List<Rectangle> faces = detector.getFaces(detectorBitmap, 2.5f, 1.1f, 0.1f, 2, true);
-                faceBar.Visibility = Visibility.Collapsed;
-
-                if (faces.Count > 0)
+                List<Rectangle> faces = detector.getFaces(detectorBitmap, 3.0f, 1.15f, 0.08f, 2);
+                this.Dispatcher.BeginInvoke(delegate()
                 {
-                    for (int i = 0; i < faces.Count(); i++)
+                    faceBar.Visibility = Visibility.Collapsed;
+
+                    if (faces.Count > 0)
                     {
-                        Rect face = new Rect(faces[i].x(), faces[i].y(), faces[i].width(), faces[i].height());
-                        WriteableBitmap croppedFace = detectorBitmap.Crop(face);
-                        faceLists[i % 3].Items.Add(detectorBitmap.Crop(face));
+                        for (int i = 0; i < faces.Count(); i++)
+                        {
+                            Rect face = new Rect(faces[i].x(), faces[i].y(), faces[i].width(), faces[i].height());
+                            WriteableBitmap croppedFace = detectorBitmap.Crop(face);
+                            faceLists[i % 3].Items.Add(detectorBitmap.Crop(face));
+                        }
                     }
-                }
+                });
             });
+            thread.Start();
         }
 
         private void showResults(Response response)
