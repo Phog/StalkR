@@ -159,6 +159,10 @@
       <Project>{A1381BBF-124E-4B05-B34C-D6889299DF48}</Project>
       <Name>FaceDetectionWinPhone</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NativeFaceDetector\NativeFaceDetector.vcxproj">
+      <Project>{3C43C117-38B3-4C34-B0B2-30351C24BD2D}</Project>
+      <Name>NativeFaceDetector</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="WriteableBitmapExWinPhone">

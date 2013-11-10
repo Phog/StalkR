@@ -12,7 +12,7 @@ using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using Microsoft.Devices;
 using Microsoft.Xna.Framework.Media;
-using FaceDetectionWinPhone;
+using NativeFaceDetector;
 using StalkR.Resources;
 using System.IO;
 
@@ -27,7 +27,7 @@ namespace StalkR
         Mode mode;
         PhotoCamera camera;
         MediaLibrary mediaLibrary;
-        Detector detector;
+        FaceDetectionWinPhone.Detector detector;
 
         public MainPage()
         {
@@ -37,7 +37,7 @@ namespace StalkR
             faceLists    = new ListBox[] { faceList0, faceList1, faceList2 };
             camera       = null;
             mediaLibrary = new MediaLibrary();
-            detector     = Detector.Create("haarcascade_frontalface_alt.xml");
+            detector     = FaceDetectionWinPhone.Detector.Create("haarcascade_frontalface_default.xml");
 
             previewTransform.Rotation = 90;
         }
@@ -84,14 +84,14 @@ namespace StalkR
             {
                 // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
                 WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
-                List<Rectangle> faces = detector.getFaces(detectorBitmap, 2.5f, 1.08f, 0.05f, 2, true);
+                List<Rectangle> faces = detector.getFaces(detectorBitmap, 2.5f, 1.1f, 0.1f, 2, true);
                 faceBar.Visibility = Visibility.Collapsed;
 
                 if (faces.Count > 0)
                 {
                     for (int i = 0; i < faces.Count(); i++)
                     {
-                        Rect face = new Rect(faces[i].X, faces[i].Y, faces[i].Width, faces[i].Height);
+                        Rect face = new Rect(faces[i].x(), faces[i].y(), faces[i].width(), faces[i].height());
                         WriteableBitmap croppedFace = detectorBitmap.Crop(face);
                         faceLists[i % 3].Items.Add(detectorBitmap.Crop(face));
                     }
