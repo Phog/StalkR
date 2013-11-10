@@ -33,7 +33,7 @@
                                  Margin="0,179,0,197"
                                  Password="password" 
                                  FontSize="48" />
-                    <TextBlock x:Name="benchmark" Margin="0,284,0,0">  
+                    <TextBlock x:Name="benchmark" Margin="0,284,0,0">
                     </TextBlock>
                 </Grid>
             </phone:PanoramaItem>
@@ -48,63 +48,18 @@
                             </VideoBrush>
                         </Canvas.Background>
                     </Canvas>
-
-                    <Button x:Name="IdentifyButton" Content="Identify" Click="IdentifyButton_Click" FontSize="36" FontWeight="ExtraBold" RenderTransformOrigin="0.5,0.5" Margin="0" Grid.Row="1" VerticalAlignment="Bottom" />
-                </Grid>
-            </phone:PanoramaItem>
-            <phone:PanoramaItem Header="Choose face">
-                <Grid>
-                    <ProgressBar x:Name="faceBar"
-                                     Height="28" Width="420"
-                                     IsIndeterminate="True"
-                                     Background="#190000FF"
-                                     Foreground="#FF3756E2"
-                                     Margin="0,0,0,448"
-                                     Visibility="Collapsed">
-                    </ProgressBar>
-
-                    <ListBox x:Name="faceList0" Width="130" Margin="0,0,290,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,0,0,10" Width="130" Height="130">
-                                    <Image Source="{Binding}" Tap="Image_Click" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                        <phone:LongListSelector Height="100" Width="100"/>
-                    </ListBox>
-                    <ListBox x:Name="faceList1" Width="130" Margin="145,0,145,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,0,0,10" Width="130" Height="130">
-                                    <Image Source="{Binding}" Tap="Image_Click" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                    <ListBox x:Name="faceList2" Width="130" Margin="290,0,0,0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,0,0,10" Width="130" Height="130">
-                                    <Image Source="{Binding}" Tap="Image_Click" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <Canvas x:Name="overlayCanvas" Margin="0,0,0,0" >
+                        <Canvas.Background>
+                            <ImageBrush x:Name="overlayBrush" Stretch="UniformToFill">
+                            </ImageBrush>
+                        </Canvas.Background>
+                    </Canvas>
                 </Grid>
             </phone:PanoramaItem>
             <phone:PanoramaItem Header="Result">
                 <Grid>
-                    <ProgressBar x:Name="resultBar"
-                                     Height="28" Width="420"
-                                     IsIndeterminate="True"
-                                     Background="#190000FF"
-                                     Foreground="#FF3756E2"
-                                     Margin="0,0,0,448"
-                                     Visibility="Collapsed">
-                    </ProgressBar>
-                    <Image x:Name="resultImage" Width="256" Height="256" Margin="82,0,82,220" Visibility="Collapsed"/>
-                    <TextBlock x:Name="resultText" Margin="0,282,0,0" TextAlignment="Center" FontSize="48"></TextBlock>
+                    <Image x:Name="resultImage" Margin="82,0,82,220" />
+                    <TextBlock x:Name="resultText" Margin="0,256,10,0" TextAlignment="Center" FontSize="36"></TextBlock>
                 </Grid>
             </phone:PanoramaItem>
         </phone:Panorama>

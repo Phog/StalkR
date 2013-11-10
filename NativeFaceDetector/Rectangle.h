@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace NativeFaceDetector
 {
 
@@ -19,7 +21,10 @@ namespace NativeFaceDetector
 		void width(double _width) { m_width = _width; }
 		void height(double _height) { m_height = _height; }
 
+		bool contains(double _x, double _y);
 		bool approximatelyEqual(Rectangle ^rhs);
+		double distanceTo(Rectangle ^rhs);
+		double diagonal() {	return sqrt(m_width * m_width + m_height * m_height); }
 	};
 
 }

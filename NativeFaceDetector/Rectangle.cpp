@@ -8,6 +8,13 @@ Rectangle::Rectangle(double _x, double _y, double _w, double _h)
 {
 }
 
+bool Rectangle::contains(double _x, double _y)
+{
+	return _x >= x() && _y >= y() &&
+		   _x <= x() + width() &&
+		   _y <= y() + height();
+}
+
 bool Rectangle::approximatelyEqual(Rectangle ^rhs)
 {
 	int distance = (int)(width() * 0.2);
@@ -25,4 +32,11 @@ bool Rectangle::approximatelyEqual(Rectangle ^rhs)
 		return true;
 
 	return false;
+}
+
+double Rectangle::distanceTo(Rectangle ^rhs)
+{
+	double xDelta = x() - rhs->x();
+	double yDelta = y() - rhs->y();
+	return sqrt(xDelta * xDelta + yDelta * yDelta);
 }

@@ -15,39 +15,36 @@ using Microsoft.Xna.Framework.Media;
 using NativeFaceDetector;
 using StalkR.Resources;
 using System.IO;
+using System.Windows.Input;
 
 namespace StalkR
 {
     public partial class MainPage : PhoneApplicationPage
     {
         private const double EPSILON = 0.00001;
-        private ListBox[] faceLists;
-        enum Mode { Preview, Capture };
 
-        Mode mode;
         PhotoCamera camera;
         MediaLibrary mediaLibrary;
         FaceDetectionWinPhone.Detector detector;
+        FaceRecognizer recognizer;
 
         public MainPage()
         {
             InitializeComponent();
-            previewMode();
-
-            faceLists    = new ListBox[] { faceList0, faceList1, faceList2 };
             camera       = null;
             mediaLibrary = new MediaLibrary();
             detector     = FaceDetectionWinPhone.Detector.Create("haarcascade_frontalface_default.xml");
+            recognizer   = new FaceRecognizer();
 
+            overlayCanvas.MouseLeftButtonDown += Preview_Click;
             previewTransform.Rotation = 90;
         }
 
         protected override void OnNavigatedTo(System.Windows.Navigation.NavigationEventArgs e)
         {
-            camera = new Microsoft.Devices.PhotoCamera(CameraType.Primary);
-            camera.Initialized           += new EventHandler<Microsoft.Devices.CameraOperationCompletedEventArgs>(Camera_Initialized);
-            camera.CaptureImageAvailable += new EventHandler<Microsoft.Devices.ContentReadyEventArgs>(Camera_CaptureImageAvailable);
-            previewBrush.SetSource(camera);
+            Microsoft.Devices.PhotoCamera tempCamera = new Microsoft.Devices.PhotoCamera(CameraType.Primary);
+            tempCamera.Initialized += new EventHandler<Microsoft.Devices.CameraOperationCompletedEventArgs>(Camera_Initialized);
+            previewBrush.SetSource(tempCamera);
         }
 
         protected override void OnNavigatingFrom(System.Windows.Navigation.NavigatingCancelEventArgs e)
@@ -56,129 +53,143 @@ namespace StalkR
                 return;
 
             camera.Dispose();
-            camera.CaptureImageAvailable -= Camera_CaptureImageAvailable;
+            camera.Initialized -= Camera_Initialized;
+            camera = null;
         }
 
-        private void previewMode()
+        // Assumes that the bitmapcontext is active
+        private void drawHeaderForBox(WriteableBitmap bitmap, int x, int y, int width, String text)
         {
-            mode = Mode.Preview;
-            IdentifyButton.Content = "Identify";
+            const int BOX_HEIGHT = 40;
+            const int BOX_WIDTH  = 120;
+
+            TranslateTransform transform = new TranslateTransform();
+            transform.X = x + (width - BOX_WIDTH) / 2;
+            transform.Y = y - BOX_HEIGHT / 2;
+
+            Border border = new Border();
+            border.Height = BOX_HEIGHT;
+            border.Width = BOX_WIDTH;
+            border.Background = new SolidColorBrush(Color.FromArgb(128, 0, 0, 0));
+
+            TextBlock textBlock = new TextBlock();
+            textBlock.FontSize = 36;
+            textBlock.TextAlignment = TextAlignment.Center;
+            textBlock.Foreground = new SolidColorBrush(Colors.White);
+            textBlock.Text = text;
+
+            border.Child = textBlock;
+            border.Arrange(new Rect(0.0, 0.0, border.Width, border.Height));
+            border.UpdateLayout();
+
+            bitmap.Render(border, transform);
         }
 
-        private void captureMode()
+        private void detectFaces(WriteableBitmap bitmap)
         {
-            if (camera == null)
-                return;
-
-            mode = Mode.Capture;
-            camera.CaptureImage();
-        }
-
-        private void detectFaces(BitmapImage bitmap)
-        {
-            faceBar.Visibility = Visibility.Visible;
-            foreach(ListBox faceList in faceLists)
-                faceList.Items.Clear();
-
             // The user sees a transposed image in the viewfinder, transpose the image for face detection as well.
             WriteableBitmap detectorBitmap = (new WriteableBitmap(bitmap)).Rotate(90);
             var thread = new System.Threading.Thread(delegate()
             {
-                List<Rectangle> faces = detector.getFaces(detectorBitmap, 3.0f, 1.15f, 0.08f, 2);
+                List<Rectangle> rectangles = detector.getFaces(detectorBitmap, 3.0f, 1.15f, 0.08f, 2);
                 this.Dispatcher.BeginInvoke(delegate()
                 {
-                    faceBar.Visibility = Visibility.Collapsed;
+                    recognizer.newFrame(rectangles, detectorBitmap);
+                    if (camera == null)
+                        return;
 
-                    if (faces.Count > 0)
+                    WriteableBitmap rectBitmap = new WriteableBitmap(detectorBitmap.PixelWidth, detectorBitmap.PixelHeight);
+                    using(rectBitmap.GetBitmapContext())
                     {
-                        for (int i = 0; i < faces.Count(); i++)
+                        rectBitmap.Clear(Colors.Transparent);
+
+                        foreach (Face face in recognizer.faces)
                         {
-                            Rect face = new Rect(faces[i].x(), faces[i].y(), faces[i].width(), faces[i].height());
-                            WriteableBitmap croppedFace = detectorBitmap.Crop(face);
-                            faceLists[i % 3].Items.Add(detectorBitmap.Crop(face));
+                            Rectangle rect = face.rectangle;
+                            int width = Convert.ToInt32(rect.width());
+                            int height = Convert.ToInt32(rect.height());
+                            int x = Convert.ToInt32(rect.x());
+                            int y = Convert.ToInt32(rect.y());
+
+                            String text = "...";
+                            if (face.response != null)
+                                text = face.response.friend == null || face.response.friend.first_name == String.Empty
+                                     ? "?" : face.response.friend.first_name;
+
+                            drawHeaderForBox(rectBitmap, x, y, width, text);
                         }
+
+                        rectBitmap.Invalidate();
                     }
+
+                    recognizer.recognize(username.Text, password.Password, ipAddress.Text);
+                    overlayBrush.ImageSource = rectBitmap;
+                    camera.GetPreviewBufferArgb32(bitmap.Pixels);
+                    detectFaces(bitmap);
                 });
             });
             thread.Start();
         }
 
-        private void showResults(Response response)
+        private void showDetails(Face face)
         {
-            this.Dispatcher.BeginInvoke(delegate()
+            if (face == null || face.response == null)
+                return;
+
+            panoramaRoot.DefaultItem = (PanoramaItem)panoramaRoot.Items[2];
+            resultImage.Source       = face.image;
+            if (!String.IsNullOrEmpty(face.response.error))
             {
-                resultBar.Visibility   = Visibility.Collapsed;
-                resultImage.Visibility = Visibility.Visible;
-                if (!String.IsNullOrEmpty(response.error))
-                {
-                    resultText.Text = response.error;
-                    return;
-                }
-
-                Friend friend = response.friend;
-                resultText.Text = String.Format("{0} {1}", friend.first_name, friend.last_name);
-            });
-        }
-
-
-        private void IdentifyButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (mode == Mode.Preview)
-            {
-                captureMode();
-                panoramaRoot.DefaultItem = (PanoramaItem)panoramaRoot.Items[2];
+                resultText.Text = face.response.error;
                 return;
             }
+
+            Friend friend = face.response.friend;
+            resultText.Text = String.Format("{0} {1}\n{2}\n{3}", friend.first_name, 
+                                            friend.last_name, friend.phone, friend.email);
         }
 
-        private void Image_Click(object sender, RoutedEventArgs e)
+        private void Preview_Click(object sender, MouseButtonEventArgs e)
         {
-            resultImage.Visibility   = Visibility.Collapsed;
-            resultText.Text          = String.Empty;
-            resultBar.Visibility     = Visibility.Visible;
-            panoramaRoot.DefaultItem = (PanoramaItem)panoramaRoot.Items[3];
+            Canvas canvas = (Canvas)sender;
 
-            Image image            = (Image) sender;
-            WriteableBitmap bitmap = (WriteableBitmap) image.Source;
-            resultImage.Source     = bitmap;
+            double ratio = camera.PreviewResolution.Width / canvas.ActualHeight;
+            Point p = e.GetPosition(canvas);
 
-            Dictionary<String, object> parameters = new Dictionary<string, object>();
-            parameters["username"] = username.Text;
-            parameters["password"] = password.Password;
+            int y = (int)(p.Y * ratio);
+            int x = (int)(p.X * ratio + (camera.PreviewResolution.Height - canvas.ActualWidth * ratio) / 2.0);
 
-            MemoryStream imageStream = new MemoryStream();
-            bitmap.SaveJpeg(imageStream, 256, 256, 0, 100);
-            parameters["image"] = imageStream.ToArray();
-
-            String url = "http://" + ipAddress.Text + "/recognize";
-            PostRequest request = new PostRequest(url, parameters, showResults);
-            request.submit();
+            showDetails(recognizer.selectFace(x, y));
         }
 
         void Camera_Initialized(object sender, Microsoft.Devices.CameraOperationCompletedEventArgs e)
         {
-            if (e.Succeeded)
-                camera.Resolution = camera.AvailableResolutions.First();
-            else
+            if (!e.Succeeded)
+            {
                 camera = null;
-        }
+                return;
+            }
 
-        void Camera_CaptureImageAvailable(object sender, Microsoft.Devices.ContentReadyEventArgs e)
-        {
+            try
+            {
+                camera = (Microsoft.Devices.PhotoCamera)sender;
+                camera.Resolution = camera.AvailableResolutions.First();
+            }
+            catch (Exception)
+            {
+                camera = null;
+                return;
+            }
+
             this.Dispatcher.BeginInvoke(delegate()
             {
-                try
-                {
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.SetSource(e.ImageStream);
-                    detectFaces(bitmap);
-                    previewMode();
-                }
-                finally
-                {
-                    // Close image stream
-                    e.ImageStream.Close();
-                }
+                if (camera == null)
+                    return;
+
+                WriteableBitmap bitmap = new WriteableBitmap((int)camera.PreviewResolution.Width,
+                                                             (int)camera.PreviewResolution.Height);
+                camera.GetPreviewBufferArgb32(bitmap.Pixels);
+                detectFaces(bitmap);
             });
         }
     }
