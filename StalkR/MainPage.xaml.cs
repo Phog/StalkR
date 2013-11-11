@@ -27,6 +27,7 @@ namespace StalkR
         MediaLibrary mediaLibrary;
         FaceDetectionWinPhone.Detector detector;
         FaceRecognizer recognizer;
+        DateTime frameStart;
 
         public MainPage()
         {
@@ -65,7 +66,7 @@ namespace StalkR
 
             TranslateTransform transform = new TranslateTransform();
             transform.X = x + (width - BOX_WIDTH) / 2;
-            transform.Y = y - BOX_HEIGHT / 2;
+            transform.Y = y;
 
             Border border = new Border();
             border.Height = BOX_HEIGHT;
@@ -116,14 +117,18 @@ namespace StalkR
                                 text = face.response.friend == null || face.response.friend.first_name == String.Empty
                                      ? "?" : face.response.friend.first_name;
 
-                            drawHeaderForBox(rectBitmap, x, y, width, text);
+                            drawHeaderForBox(rectBitmap, x, y - 20, width, text);
                         }
 
+                        double milliseconds = (DateTime.Now - frameStart).TotalMilliseconds;
+                        drawHeaderForBox(rectBitmap, 2, 0, 140, String.Format("{0} ms", Math.Floor(milliseconds)));
+                        frameStart = DateTime.Now;
                         rectBitmap.Invalidate();
                     }
 
                     recognizer.recognize(username.Text, password.Password, ipAddress.Text);
                     overlayBrush.ImageSource = rectBitmap;
+
                     camera.GetPreviewBufferArgb32(bitmap.Pixels);
                     detectFaces(bitmap);
                 });
@@ -188,6 +193,7 @@ namespace StalkR
 
                 WriteableBitmap bitmap = new WriteableBitmap((int)camera.PreviewResolution.Width,
                                                              (int)camera.PreviewResolution.Height);
+                frameStart = DateTime.Now;
                 camera.GetPreviewBufferArgb32(bitmap.Pixels);
                 detectFaces(bitmap);
             });

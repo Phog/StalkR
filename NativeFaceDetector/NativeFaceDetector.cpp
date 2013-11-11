@@ -41,9 +41,9 @@ concurrency::task<std::vector<Rectangle^> > Detector::rectsForScaleParallel(int 
 	return concurrency::create_task([i0, width, height, size, xStep, yStep, this]
 	{
 		std::vector<Rectangle^> rects;
-		for (int i = i0; i < width - size; i += xStep)
+		for (int i = i0; i < width; i += xStep)
 		{
-			for (int j = 0; j < height - size; j += yStep)
+			for (int j = 0; j < height; j += yStep)
 			{
 				bool pass = true;
 				for (std::vector<Stage>::const_iterator it = m_stages.cbegin(); it < m_stages.cend(); ++it)
@@ -104,9 +104,10 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 		int step = (int)(scale * m_size.width * increment);
 		int size = (int)(scale * m_size.width);
 
-		auto aThread = rectsForScaleParallel(0, width, height, size, 2 * step, step);
-		auto bThread = rectsForScaleParallel(step, width, height, size, 2 * step, step);
-	
+		int  split   = step * (width / step) / 2;
+		auto aThread = rectsForScaleParallel(0, min(split, width - size), height - size, size, step, step);
+		auto bThread = rectsForScaleParallel(split, width - size, height - size, size, step, step);
+
 		std::vector<Rectangle^> aVec = aThread.get();
 		for (auto it = aVec.begin(); it != aVec.end(); ++it)
 			rects.push_back(*it);

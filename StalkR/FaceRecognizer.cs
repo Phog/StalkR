@@ -17,6 +17,7 @@ namespace StalkR
         public int timestamp;
         public WriteableBitmap image;
         public bool responsePending;
+        private const double STAY_PUT_THRESHOLD = 5.0;
 
         public Face(Rectangle r, int t, WriteableBitmap i)
         {
@@ -27,7 +28,8 @@ namespace StalkR
 
         public void update(Rectangle r, int t, WriteableBitmap i)
         {
-            rectangle = r;
+            if (rectangle == null || rectangle.distanceTo(r) > STAY_PUT_THRESHOLD)
+                rectangle = r;
             timestamp = t;
             image     = i.Crop(new Rect(r.x(), r.y(), r.width(), r.height()));
         }
@@ -37,6 +39,7 @@ namespace StalkR
     {
         public List<Face> faces { get; private set; }
         private int timestamp;
+        private const double DISTANCE_THRESHOLD = 0.5;
 
         public FaceRecognizer()
         {
@@ -63,7 +66,7 @@ namespace StalkR
                     }
                 }
 
-                if (bestFace != null && bestDistance <= 0.5 * rectangle.diagonal())
+                if (bestFace != null && bestDistance <= DISTANCE_THRESHOLD * rectangle.diagonal())
                     bestFace.update(rectangle, timestamp, image);
                 else
                     newRectangles.Add(rectangle);
@@ -72,7 +75,7 @@ namespace StalkR
             List<Face> removeList = new List<Face>();
             foreach (Face face in faces)
             {
-                if (face.timestamp != timestamp)
+                if (face.timestamp < timestamp - 1)
                     removeList.Add(face);
             }
 
@@ -80,9 +83,7 @@ namespace StalkR
                 faces.Remove(face);
 
             foreach (Rectangle rectangle in newRectangles)
-            {
                 faces.Add(new Face(rectangle, timestamp, image));
-            }
         }
 
         public void recognize(String username, String password, String ipAddress)
