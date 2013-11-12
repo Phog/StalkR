@@ -21,17 +21,17 @@
                     <TextBox x:Name="ipAddress"
                              Height="100" 
                              Margin="0,-21,0,397" 
-                             Text="192.168.0.106"
+                             Text="IP Address"
                              FontSize="48"/>
                     <TextBox x:Name="username"
                              Height="100"
                              Margin="0,79,0,297"
-                             Text="admin"
+                             Text="username"
                              FontSize="48" />
                     <PasswordBox x:Name="password"
                                  Height="100"
                                  Margin="0,179,0,197"
-                                 Password="default" 
+                                 Password="password"
                                  FontSize="48" />
                     <TextBlock x:Name="benchmark" Margin="0,284,0,0">
                     </TextBlock>

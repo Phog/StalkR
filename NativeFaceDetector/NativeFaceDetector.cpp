@@ -103,9 +103,8 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 		int step = (int)(scale * m_size.width * increment);
 		int size = (int)(scale * m_size.width);
 
-		int  split   = step * (height / step) / 2;
-		auto aThread = rectsForScaleParallel(0, width - size, min(split, height - size), size, step, step);
-		auto bThread = rectsForScaleParallel(split, width - size, height - size, size, step, step);
+		auto aThread = rectsForScaleParallel(0   , width - size, height - size, size, step, 2 * step);
+		auto bThread = rectsForScaleParallel(step, width - size, height - size, size, step, 2 * step);
 
 		std::vector<Rectangle^> aVec = aThread.get();
 		for (auto it = aVec.begin(); it != aVec.end(); ++it)
