@@ -20,9 +20,9 @@ namespace NativeFaceDetector
 		void resize(Size size);
 		Size size() const { return m_size; }
 
-		void prefetch(int i, int j) const { __prefetch(&m_storage[i * m_size.height + j]); }
-		const int& operator()(int i, int j) const { return m_storage[i * m_size.height + j]; }
-		int& operator()(int i, int j) { return m_storage[i * m_size.height + j]; }
+		void prefetch(int i, int j) const { __prefetch(&m_storage[i * m_size.width + j]); }
+		const int& operator()(int i, int j) const { return m_storage[i * m_size.width + j]; }
+		int& operator()(int i, int j) { return m_storage[i * m_size.width + j]; }
 	};
 
 }

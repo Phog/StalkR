@@ -28,7 +28,7 @@ namespace NativeFaceDetector
 			m_width   = (int)(scale * m_size.width);
 			m_height  = (int)(scale * m_size.height);
 
-			const float area  = (float)(m_width * m_height);
+			const int area    = m_width * m_height;
 			m_invArea         = 1.0f / area;
 			m_scaledThreshold = m_threshold * area;
 			

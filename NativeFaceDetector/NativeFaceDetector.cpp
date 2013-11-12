@@ -41,9 +41,9 @@ concurrency::task<std::vector<Rectangle^> > Detector::rectsForScaleParallel(int 
 	return concurrency::create_task([i0, width, height, size, xStep, yStep, this]
 	{
 		std::vector<Rectangle^> rects;
-		for (int i = i0; i < width; i += xStep)
+		for (int i = i0; i < height; i += yStep)
 		{
-			for (int j = 0; j < height; j += yStep)
+			for (int j = 0; j < width; j += xStep)
 			{
 				bool pass = true;
 				for (std::vector<Stage>::const_iterator it = m_stages.cbegin(); it < m_stages.cend(); ++it)
@@ -56,7 +56,7 @@ concurrency::task<std::vector<Rectangle^> > Detector::rectsForScaleParallel(int 
 				}
 				
 				if (pass)
-					rects.push_back(ref new Rectangle(i, j, size, size));
+					rects.push_back(ref new Rectangle(j, i, size, size));
 			}
 		}
 		return rects;
@@ -74,25 +74,24 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 	m_grayImage.resize(imageSize);
 	m_squaredImage.resize(imageSize);
 
-	for (int j = 0; j < height; j++)
+	const int *imgData = imageData->Data;
+	for (int i = 0; i < height; i++)
 	{
-		int row = 0;
-		int rowSquared = 0;
-		for (int i = 0; i < width; i++)
+		int column = 0;
+		int columnSquared = 0;
+		for (int j = 0; j < width; j++)
 		{
-			m_grayImage.prefetch(i, j);
-			m_squaredImage.prefetch(i, j);
-			int c     = imageData[j * width + i];
-			int red   = (c & 0x00ff0000) >> 16;
-			int green = (c & 0x0000ff00) >> 8;
-			int blue  = c & 0x000000ff;
-			int value = (30 * red + 59 * green + 11 * blue) / 100;
+			int c = imgData[i * width + j];
+			int r = (c & 0x00ff0000) >> 16;
+			int g = (c & 0x0000ff00) >> 8;
+			int b = c & 0x000000ff;
+			int v = (30 * r + 59 * g + 11 * b) / 100;
 
-			row        += value;
-			rowSquared += value * value;
-
-			m_grayImage(i, j)    = (i > 0 ? m_grayImage(i, j - 1) : 0) + row;
-			m_squaredImage(i, j) = (i > 0 ? m_squaredImage(i, j - 1) : 0) + rowSquared;
+			column        += v;
+			columnSquared += v * v;
+			
+			m_grayImage(i, j)    = (i > 0 ? m_grayImage(i - 1, j) : 0) + column;
+			m_squaredImage(i, j) = (i > 0 ? m_squaredImage(i - 1, j) : 0) + columnSquared;
 		}
 	}
 
@@ -104,8 +103,8 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 		int step = (int)(scale * m_size.width * increment);
 		int size = (int)(scale * m_size.width);
 
-		int  split   = step * (width / step) / 2;
-		auto aThread = rectsForScaleParallel(0, min(split, width - size), height - size, size, step, step);
+		int  split   = step * (height / step) / 2;
+		auto aThread = rectsForScaleParallel(0, width - size, min(split, height - size), size, step, step);
 		auto bThread = rectsForScaleParallel(split, width - size, height - size, size, step, step);
 
 		std::vector<Rectangle^> aVec = aThread.get();
@@ -125,11 +124,11 @@ void Detector::merge(Windows::Foundation::Collections::IVector<Rectangle^> ^outR
 {
 	std::vector<int> ret(inRects.size());
     
-    int numClasses = 0;
-    for (int i = 0; i < inRects.size(); i++)
+    size_t numClasses = 0;
+    for (size_t i = 0; i < inRects.size(); i++)
     {
         bool found = false;
-        for (int j = 0; j < i; j++)
+        for (size_t j = 0; j < i; j++)
             if (inRects[j]->approximatelyEqual(inRects[i]))
             {
                 found = true;
@@ -140,16 +139,16 @@ void Detector::merge(Windows::Foundation::Collections::IVector<Rectangle^> ^outR
             ret[i] = numClasses++;
     }
 
-	std::vector<int> neighbours(numClasses);
+	std::vector<size_t> neighbours(numClasses);
 	std::vector<Rectangle^> rects(numClasses);
 
-    for (int i = 0; i < numClasses; i++)
+    for (size_t i = 0; i < numClasses; i++)
     {
         neighbours[i] = 0;
         rects[i] = ref new Rectangle(0, 0, 0, 0);
     }
 
-    for (int i = 0; i < inRects.size(); i++)
+    for (size_t i = 0; i < inRects.size(); i++)
     {
         neighbours[ret[i]]++;
 
@@ -164,10 +163,10 @@ void Detector::merge(Windows::Foundation::Collections::IVector<Rectangle^> ^outR
 		rects[ret[i]]->height(height);
     }
 
-    for (int i = 0; i < numClasses; i++)
+    for (size_t i = 0; i < numClasses; i++)
     {
-        int n = neighbours[i];
-        if (n >= minNeighbors)
+        size_t n = neighbours[i];
+        if (n >= (size_t)minNeighbors)
         {
 			double x      = (rects[i]->x() * 2 + n) / (2 * n);
             double y      = (rects[i]->y() * 2 + n) / (2 * n);
