@@ -14,12 +14,7 @@ namespace NativeFaceDetector
 		std::vector<Feature> m_features;
 	public:
 		void addFeature(const Feature &f) { m_features.push_back(f); }
-		void setScale(float scale)
-		{
-			for (std::vector<Feature>::iterator i = m_features.begin(); i < m_features.end(); ++i)
-				i->setScale(scale);
-		}
-
+		void setScale(float scale);
 		float getVal(const Matrix &grayImage, const Matrix &squares, int i, int j) const;
 	};
 

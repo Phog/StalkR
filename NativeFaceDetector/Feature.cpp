@@ -2,7 +2,6 @@
 #include "Feature.h"
 
 #include <cmath>
-#include <algorithm>
 
 using namespace NativeFaceDetector;
 
@@ -17,14 +16,10 @@ bool Feature::chooseLeft(const Matrix &grayImage, const Matrix &squares, int i, 
 	const int bottom = i + m_height;
 	const int right  = j + m_width;
 
-	const int total        = grayImage(bottom, right) + grayImage(i, j)
-		                   - grayImage(i, right)     - grayImage(bottom, j);
-	const int squaredTotal = squares(bottom, right) + squares(i, j)
-		                   - squares(i, right)     - squares(bottom, j);
-
-	const float mean       = total * m_invArea;
-	const float variance   = squaredTotal * m_invArea - mean * mean;
-	const float normalizer = (variance > 1.0f) ? sqrt(variance) : 1.0f;
+	const float mean        = grayImage.rectangleSum(i, right, bottom, j) * m_invArea;
+	const float squaredMean = squares.rectangleSum(i, right, bottom, j) * m_invArea;
+	const float variance    = squaredMean - mean * mean;
+	const float normalizer  = (variance > 1.0f) ? sqrt(variance) : 1.0f;
 
 	float rectSum = m_rects[0].weightedSum(grayImage, i, j);
 	if (m_numRects > 1)

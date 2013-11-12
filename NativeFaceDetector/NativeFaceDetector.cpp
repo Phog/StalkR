@@ -77,8 +77,8 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 	const int *imgData = imageData->Data;
 	for (int i = 0; i < height; i++)
 	{
-		int column = 0;
-		int columnSquared = 0;
+		int row        = 0;
+		int rowSquared = 0;
 		for (int j = 0; j < width; j++)
 		{
 			int c = imgData[i * width + j];
@@ -87,11 +87,11 @@ void Detector::getFaces(Windows::Foundation::Collections::IVector<Rectangle^> ^o
 			int b = c & 0x000000ff;
 			int v = (30 * r + 59 * g + 11 * b) / 100;
 
-			column        += v;
-			columnSquared += v * v;
+			row        += v;
+			rowSquared += v * v;
 			
-			m_grayImage(i, j)    = (i > 0 ? m_grayImage(i - 1, j) : 0) + column;
-			m_squaredImage(i, j) = (i > 0 ? m_squaredImage(i - 1, j) : 0) + columnSquared;
+			m_grayImage(i, j)    = (i > 0 ? m_grayImage(i - 1, j) : 0) + row;
+			m_squaredImage(i, j) = (i > 0 ? m_squaredImage(i - 1, j) : 0) + rowSquared;
 		}
 	}
 
