@@ -16,7 +16,7 @@ namespace NativeFaceDetector
 		float m_threshold, m_leftVal, m_rightVal;
 		int m_leftNode, m_rightNode, m_numRects;
 
-		float m_scale, m_invArea;
+		float m_scale, m_invArea, m_scaledThreshold;
 		int m_width, m_height;
 	public:
         Feature(float threshold, float leftVal, int leftNode, float rightVal, int rightNode, Size size);
@@ -27,9 +27,13 @@ namespace NativeFaceDetector
 			m_scale   = scale;
 			m_width   = (int)(scale * m_size.width);
 			m_height  = (int)(scale * m_size.height);
-			m_invArea = 1.0f / (float)(m_width * m_height);
+
+			const float area  = (float)(m_width * m_height);
+			m_invArea         = 1.0f / area;
+			m_scaledThreshold = m_threshold * area;
+			
 			for (int k = 0; k < m_numRects; k++)
-				m_rects[k].setScale(scale, m_invArea);
+				m_rects[k].setScale(scale);
 		}
 
 		void add(const RectFeature &r) { m_rects[m_numRects++] = r; }

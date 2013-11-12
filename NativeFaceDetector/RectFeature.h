@@ -18,7 +18,7 @@ namespace NativeFaceDetector
 		int scaledBottom() const { return m_scaledBottom; }
 		float weight() const { return m_weight; }
 
-		void setScale(float scale, float invArea)
+		void setScale(float scale)
 		{
 			m_scaledLeft = (int)(scale * m_x1);
 			m_scaledRight = (int)(scale * (m_x1 + m_y1));
